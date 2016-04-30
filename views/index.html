@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <!--char set (lang above)-->
+  <meta charset="utf-8">
+
+  <!--device/browser shizzle-->
+  <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <!--meta content-->
+  <link rel="shortcut icon" href="favicon.ico" />
+
+  <meta name="author" content="Ruth John (@rumyra)">
+  <meta name="dcterms.rightsHolder" content="Ruth John for Rumyra Ltd, United Kingdom, 2015">
+  <title>Rumyra's Interactive VJing</title>
+
+  <link href="public/css/projection.css" rel="stylesheet" type="text/css">
+  <script src="https://js.pusher.com/3.0/pusher.min.js"></script>
+
+  <script src="d3/d3.min.js"></script>
+
+</head>
+<body class="projection">
+
+<section id="instruct">
+  <h2>Sweet Audio, Plus Connectivity From The Web, Makes Sweet Interactive Audio/Visual Sweetness</h2>
+  <p>Pick up your phone, go to http://url.here and get yourself a Dolby!</p>
+  <p>Control your Dolby with the onscreen instructions</p>
+  <p>Get more people to join - the more the merrier!</p>
+  <p>Play this music and your Dolbys will dance along.</p>
+  <p class="center">
+    <audio id="simon" src="public/Guilt.mp3"></audio>
+    <button id="play-audio">Play/Pause Audio</button>
+  </p>
+  <p>Made with love by Ruth (aka <a href="http://twitter.com/rumyra">@rumyra</a>) for Dolby's Developer Challenge, using <img src="public/images/DolbyAudio_Hrztl_black.png" alt="black horizontal dolby sound text logo" /> and their audio compressor technology.</p>
+  <p>Please use the latest browser</p>
+  <p>Featuring Guilt by <a href="https://www.residentadvisor.net/dj/simonheartfield">Simon Heartfield</a></p>
+</section>
+
+<section id="screen">
+
+
+</section>
+
+<span id="pusher" data-key="{{PUSH_KEY}}"></span>
+<script src="https://s3-us-west-1.amazonaws.com/dolbydeveloper/1.1.0/js/dolby.min.js"></script>
+<script type="text/javascript">
+
+// pusher stuff -----------------------------
+var config = document.getElementById('pusher').dataset;
+var pusher = new Pusher(config.key, {encrypted:true});
+
+Pusher.channel_auth_endpoint = 'http://localhost:3000/pusher/auth';
+pusher.connection.bind('state_change', function(states) {
+    console.log("Pusher's current state is " + states.current);
+});
+
+// subscribe to channel
+var channel = pusher.subscribe('private-rubies');
+
+channel.bind('pusher:subscription_succeeded', function() {
+  console.log('subscription succeeded');
+});
+
+
+// audio stuff --------------------------------------------
+var simonSoundEl = document.getElementById('simon');
+// Dolby check
+if (Dolby.checkDDPlus() === true) {
+  simonSoundEl.src = 'public/Guilt_Dolby.mp4';
+}
+
+// set up audio context
+var audioContext = (window.AudioContext || window.webkitAudioContext);
+// create audio class
+if (audioContext) {
+  // Web Audio API is available.
+  var audioAPI = new audioContext();
+} else {
+  // Web Audio API is not available. Ask the user to use a supported browser.
+  alert("Oh nos! It appears your browser does not support the Web Audio API, please upgrade or use a different browser");
+}
+
+// variables
+var audioBuffer,
+    analyserNode = audioAPI.createAnalyser(),
+    frequencyData = new Uint8Array(1024),
+    playButton = document.getElementById('play-audio'),
+    guiltMp3 = audioAPI.createMediaElementSource(simonSoundEl);
+
+analyserNode.fftSize = 2048;
+
+var playGuilt = function playGuilt() {
+  guiltMp3.connect(analyserNode);
+  guiltMp3.connect(audioAPI.destination);
+  analyserNode.connect(audioAPI.destination);
+  simonSoundEl.play();
+  animateSvgs();
+}
+//play track
+playButton.onclick = function() {
+  if (simonSoundEl.paused) {
+    playGuilt();
+  } else {
+    simonSoundEl.pause();
+  }
+}
+
+
+// logo stuff ----------------------------------------
+function createImage(uniqueID) {
+  var outerDiv = document.createElement('div');
+  outerDiv.setAttribute("id", uniqueID);
+  var theImage = document.createElement('img');
+  theImage.src = "public/images/dolby_white.png";
+  outerDiv.appendChild(theImage);
+  return outerDiv;
+}
+
+function oneGem(id) {
+  this.id = id;
+  this.type = 'white';
+  this.view = "rotate(0deg) rotate3d(1,0,0, 0deg)";
+}
+var allGemParams = [],
+  screen = document.getElementById('screen'),
+  firstGem = new oneGem(000);
+// make at least one gem
+allGemParams.push(firstGem);
+// createGem(000, screen);
+function updateGemArray(id, param, value) {
+  for (var i=0; i<allGemParams.length; i++) {
+    if (id === allGemParams[i].id) {
+      switch (param) {
+        case 'img-color':
+          allGemParams[i].type = value;
+        break;
+        case 'view':
+          allGemParams[i].view = value;
+        break;
+      }
+    }
+  }
+}
+
+channel.bind('client-audience_joined', function(data) {
+  // createGem(data.person, screen);
+  var thisGem = new oneGem(data.person);
+  allGemParams.push(thisGem);
+  restart();
+  updateSvgs();
+});
+
+channel.bind('client-audience_data', function(data) {
+  updateGemArray(data.person, data.param, data.setting);
+  restart()
+});
+
+
+// high 600 - 250 mid 250 - 100 low 100 - 0
+function updateSvgs() {
+  requestAnimationFrame(updateSvgs);
+
+  // Animation stuff--------------------------------
+  // var allRepeatedEls = document.getElementsByTagName('svg');
+  var totalEls = allGemParams.length;
+
+  // Simple example of changing opacity & colour -> EDIT THIS!
+  for (var i=0; i<totalEls; i++) {
+    var imgElement = document.getElementById(allGemParams[i].id).children[0];
+    // show correct view
+    if (allGemParams[i].type === 'red') {
+      imgElement.src = 'public/images/dolby_red.png';
+    } else if (allGemParams[i].type === 'green') {
+      imgElement.src = 'public/images/dolby_green.png';
+    } else if (allGemParams[i].type === 'blue') {
+      imgElement.src = 'public/images/dolby_blue.png';
+    } else {
+      imgElement.src = 'public/images/dolby_white.png';
+    }
+
+    var rotation = allGemParams[i].view;
+    // imgElement.style.transform = rotation;
+    
+  }
+}
+function animateSvgs() {
+  requestAnimationFrame(animateSvgs);
+  analyserNode.getByteFrequencyData(frequencyData);
+
+  // Animation stuff--------------------------------
+  // var allRepeatedEls = document.getElementsByTagName('svg');
+  var totalEls = allGemParams.length;
+
+  // Simple example of changing opacity & colour -> EDIT THIS!
+  for (var i=0; i<totalEls; i++) {
+    var imgElement = document.getElementById(allGemParams[i].id).children[0];
+    
+    var freqDataKey = i*20;
+    if (frequencyData[freqDataKey] > 140){
+      //start animation on element
+      imgElement.style.opacity = "1";
+    } else {
+      imgElement.style.opacity = "0.4";
+    }
+
+  }
+}
+// d3 stuff -------------------------------------
+
+// var tempAr = [1,2,3,4,5,6,7];
+// for (var i=0; i<tempAr.length; i++) {
+//   createGem(screen);
+// }
+var allDivs = d3.select("#screen");
+// console.log(allGems);
+
+// set layout
+var w = window.innerWidth;
+var h = window.innerHeight;
+
+var force = d3.layout
+  .force()
+  .linkDistance(500)
+  .charge(-300)
+  .nodes(allGemParams)
+  .size([w,h])
+  .on("tick", tick);
+
+function tick() {
+  d3.selectAll("div.gem").attr("style", function(d) {
+    // console.log(d)
+    return 'left:'+d.x+'px; top: '+d.y+'px;';
+  })
+}
+
+var nodes = force.nodes();
+var node = allDivs.selectAll("div.gem")
+function restart() {
+  d3.selectAll("div.gem").remove()
+  node.data(nodes).enter().append('div').attr('class', 'gem').html(function(d){
+    return createImage(d.id).outerHTML
+  })
+  force.start();
+}
+
+restart()
+
+</script>
+</body>
+</html>

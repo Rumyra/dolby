@@ -1,0 +1,54 @@
+@import '_reset.scss';
+
+body {background: $black; color: $white;}
+
+#controls {
+  width:300px;
+  padding:20px; margin:0px auto;
+}
+
+.image {text-align:center; padding:20px 0px;}
+
+header {
+  padding: 1em 0px;
+  border-bottom: 1px solid $blue;
+}
+
+h4 {
+  padding:2em 0px 2em;
+}
+
+.form-field {
+  display: flex;
+  justify-content: space-around;
+  flex-wrap:wrap;
+  
+  .input-radio {
+    clip: rect(1px, 1px, 1px, 1px);
+    position: absolute !important;
+  }
+
+  .label-radio {
+    display: inline-block; box-sizing:border-box;
+    min-width: 48%;
+    padding: 0.5rem 1rem;
+    margin:10px 0px;
+    border-radius: 1px;
+    transition: all .2s;
+    text-align: center;
+    
+  }
+
+  .input-radio:checked + .label-radio {
+      background: $white;
+      color: $black;
+      text-shadow: 0 0 1px rgba(0,0,0,.7);
+  }
+
+  .input-radio:focus + .label-radio {
+      outline-color: $blue;
+      outline-offset: -2px;
+      outline-style: auto;
+      outline-width: 5px;
+  }
+}

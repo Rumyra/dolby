@@ -1,0 +1,49 @@
+@import '_reset.scss';
+
+#projection {overflow:hidden;}
+
+#instruct {
+  width:24vw; height:100vh; overflow:scroll;
+  float:left;
+  padding:20px;
+  box-sizing: border-box;
+  h2 {
+    padding-bottom:20px; margin-bottom:20px;
+    border-bottom: 2px solid $red;
+    text-align: center;
+  }
+  p {
+    margin-bottom:20px;
+    img {height:10px; width:auto;}
+    button {
+      padding:10px 20px; display:block; margin:10px;
+      background-color:$red; border-radius: 2px;
+      border: 1px solid darken($red, 10%);
+      font-family: 'OpenSans', sans-serif;
+      font-size: 100%; color:white; 
+      &:hover {background-color:darken($red, 10%); cursor:pointer;}
+    }
+    &.center {text-align: center;}
+  }
+}
+
+#screen {
+  background: $black;
+  width:75vw; height:100vh;
+  box-sizing: border-box;
+  padding: 20px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-wrap: wrap;
+}
+#screen > div {
+  padding:10px;
+}
+.gem{
+  position: absolute;
+}
+.svgSide {display: none;}
+#url {
+  position:absolute; top:10px; right:50px; color:white; font-size:120%;
+}
