@@ -1,12 +1,14 @@
 @import '_reset.scss';
 
-#projection {overflow:hidden;}
+.projection {
+  overflow:hidden;
+  background-image:linear-gradient(90deg, $white 24%, $black 24%);
+}
 
 #instruct {
-  width:24vw; height:100vh; overflow:scroll;
+  width:20%; height:100vh; overflow:scroll;
   float:left;
-  padding:20px;
-  box-sizing: border-box;
+  padding:2%;
   h2 {
     padding-bottom:20px; margin-bottom:20px;
     border-bottom: 2px solid $red;
@@ -29,9 +31,9 @@
 
 #screen {
   background: $black;
-  width:75vw; height:100vh;
+  width:70%; height:100vh;
   box-sizing: border-box;
-  padding: 20px;
+  padding:2%;
   display: flex;
   justify-content: center;
   align-items: center;
